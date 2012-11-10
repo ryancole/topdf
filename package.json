@@ -1,0 +1,21 @@
+{
+    "name": "topdf",
+    "version": "0.0.1",
+    "description": "A node.js addon for Oracle's pdf export library.",
+    "main": "lib/topdf.js",
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "install": "node-gyp rebuild"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:ryancole/topdf.git"
+    },
+    "keywords": ["oracle", "pdf", "converter"],
+    "author": "Ryan Cole",
+    "license": "BSD",
+    "gypfile": true,
+    "readmeFilename": "readme.md"
+}
