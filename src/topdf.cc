@@ -21,7 +21,7 @@ Handle<Value> convert (const Arguments& args) {
 void initialize (Handle<Object> target) {
     
     // initialize data access module
-    if (DAInitEx(SCCOPT_INIT_NOTHREADS, (OI_INIT_NOSAVEOPTIONS | OI_INIT_NOLOADOPTIONS)) != SCCERR_OK)
+    if (DAInitEx(SCCOPT_INIT_NOTHREADS, (OI_INIT_NOSAVEOPTIONS | OI_INIT_NOLOADOPTIONS)) != DAERR_OK)
         ThrowException(Exception::TypeError(String::New("failed to initialize pdf export engine")));
     
     // export convert function
