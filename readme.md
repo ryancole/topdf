@@ -2,7 +2,7 @@ A node.js addon for Oracle's pdf export library.
 
 # Compiling Prerequisites
 
-Download the Oracle pdf export SDK, place the header files in `/usr/local/include/pdfexport` and the shared objects in `/usr/local/lib/pdfexport`. Make sure `/usr/local/lib/pdfexport` is in `$LD_LIBRARY_PATH`.
+Download the Oracle pdf export SDK, place the header files in `/usr/local/include/pdfexport` and the *entire* contents of the sdk's `redist` directory into `/usr/local/lib/pdfexport`. Make sure `/usr/local/lib/pdfexport` is in `$LD_LIBRARY_PATH`.
 
 # Oracle
 
