@@ -1,5 +1,17 @@
 A node.js addon for Oracle's pdf export library.
 
+# Usage
+
+```javascript
+var topdf = require('topdf');
+
+topdf.convert('/home/foo/bar.xlsx', '/home/foo/bar.pdf', function (err, details) {
+
+    console.log(details);
+
+});
+```
+
 # Compiling Prerequisites
 
 Download the Oracle pdf export SDK, place the header files in `/usr/local/include/pdfexport` and the *entire* contents of the sdk's `redist` directory into `/usr/local/lib/pdfexport`. Make sure `/usr/local/lib/pdfexport` is in `$LD_LIBRARY_PATH`.
