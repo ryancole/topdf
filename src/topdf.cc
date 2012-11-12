@@ -165,12 +165,17 @@ Handle<Value> convert (const Arguments& args) {
     // instanciate data baton
     topdf_convert_baton* baton = new topdf_convert_baton;
     
+    // get arguments
+    Local<Object> options = Local<Object>::Cast(args[2]);
+    Local<Function> callback = Local<Function>::Cast(args[3]);
+    
     // initialize baton properties
     baton->success = false;
     baton->req.data = (void*) baton;
     baton->source = new String::Utf8Value(args[0]->ToString());
     baton->destination = new String::Utf8Value(args[1]->ToString());
-    baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[2]));
+    baton->options = Persistent<Object>::New(options);
+    baton->callback = Persistent<Function>::New(callback);
     
     // initiate async work on thread pool
     uv_queue_work(uv_default_loop(), &baton->req, topdf_convert, topdf_convert_end);

@@ -11,6 +11,7 @@ struct topdf_convert_baton {
     uv_work_t req;
     String::Utf8Value* source;
     String::Utf8Value* destination;
+    Persistent<Object> options;
     Persistent<Function> callback;
     
 };
