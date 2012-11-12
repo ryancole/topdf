@@ -81,8 +81,6 @@ void topdf_init_end (uv_work_t* req) {
 
 void topdf_convert (uv_work_t* req) {
     
-    ThrowException(Exception::TypeError(String::New("foobin")));
-    
     // init the baton pointer
     topdf_convert_baton* baton = (topdf_convert_baton*) req->data;
     
@@ -91,17 +89,10 @@ void topdf_convert (uv_work_t* req) {
         
         VTHDOC documentHandle;
         
-        ThrowException(Exception::TypeError(String::New("openin doc")));
-        
         // open the source document
         if (DAOpenDocument(&documentHandle, IOTYPE_UNIXPATH, **(baton->source), 0) == SCCERR_OK) {
             
             VTHEXPORT exportHandle;
-            
-            ThrowException(Exception::TypeError(String::New("setting options")));
-            
-            // set document-specific options
-            setOptions(documentHandle, baton->options);
             
             // convert the source document
             if (EXOpenExport(documentHandle, FI_PDF, IOTYPE_UNIXPATH, **(baton->destination), 0, 0, NULL, 0, &exportHandle) == SCCERR_OK) {
