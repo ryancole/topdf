@@ -12,18 +12,15 @@
 
 using namespace v8;
 
-void setOptions (VTHDOC documentHandle, Local<Object> options) {
+void setOptions (VTHDOC documentHandle, Handle<Object> options) {
     
-    // BALLMER PEAK ACTIVE
-    VTHDOC handle = documentHandle == NULL ? NULL : documentHandle;
-    
-    if (options->Has(String::New("fontsDirectory"))) {
+    if (options->Has(String::New("fontDirectory"))) {
         
-        // get the font directory path
-        String::Utf8Value fontsDirectory (options->Get(String::New("fontsDirectory"))->ToString());
+        // get the option value
+        String::Utf8Value value (options->Get(String::New("fontDirectory"))->ToString());
         
         // set the option
-        DASetOption(handle, SCCOPT_FONTDIRECTORY, *fontsDirectory, fontsDirectory.length() + 1);
+        DASetOption(documentHandle, SCCOPT_FONTDIRECTORY, *value, value.length());
         
     }
     
@@ -86,6 +83,8 @@ void topdf_init_end (uv_work_t* req) {
 
 void topdf_convert (uv_work_t* req) {
     
+    ThrowException(Exception::TypeError(String::New("foobin")));
+    
     // init the baton pointer
     topdf_convert_baton* baton = (topdf_convert_baton*) req->data;
     
@@ -94,10 +93,17 @@ void topdf_convert (uv_work_t* req) {
         
         VTHDOC documentHandle;
         
+        ThrowException(Exception::TypeError(String::New("openin doc")));
+        
         // open the source document
         if (DAOpenDocument(&documentHandle, IOTYPE_UNIXPATH, **(baton->source), 0) == SCCERR_OK) {
             
             VTHEXPORT exportHandle;
+            
+            ThrowException(Exception::TypeError(String::New("setting options")));
+            
+            // set document-specific options
+            setOptions(documentHandle, baton->options);
             
             // convert the source document
             if (EXOpenExport(documentHandle, FI_PDF, IOTYPE_UNIXPATH, **(baton->destination), 0, 0, NULL, 0, &exportHandle) == SCCERR_OK) {
@@ -162,20 +168,22 @@ Handle<Value> convert (const Arguments& args) {
     
     HandleScope scope;
     
+    if (args.Length() != 4)
+        ThrowException(Exception::SyntaxError(String::New("expected four parameters")));
+    
+    if (!args[0]->IsString() || !args[1]->IsString() || !args[2]->IsObject() || !args[3]->IsFunction())
+        ThrowException(Exception::TypeError(String::New("expected str, str, obj, func parameters")));
+    
     // instanciate data baton
     topdf_convert_baton* baton = new topdf_convert_baton;
-    
-    // get arguments
-    Local<Object> options = Local<Object>::Cast(args[2]);
-    Local<Function> callback = Local<Function>::Cast(args[3]);
     
     // initialize baton properties
     baton->success = false;
     baton->req.data = (void*) baton;
     baton->source = new String::Utf8Value(args[0]->ToString());
     baton->destination = new String::Utf8Value(args[1]->ToString());
-    baton->options = Persistent<Object>::New(options);
-    baton->callback = Persistent<Function>::New(callback);
+    baton->options = Persistent<Object>::New(args[2]->ToObject());
+    baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[3]));
     
     // initiate async work on thread pool
     uv_queue_work(uv_default_loop(), &baton->req, topdf_convert, topdf_convert_end);
@@ -187,6 +195,12 @@ Handle<Value> convert (const Arguments& args) {
 Handle<Value> init (const Arguments& args) {
     
     HandleScope scope;
+    
+    if (args.Length() != 1)
+        ThrowException(Exception::SyntaxError(String::New("expected one parameter")));
+    
+    if (!args[0]->IsFunction())
+        ThrowException(Exception::TypeError(String::New("expected callback parameter")));
     
     // instanciate data baton
     topdf_init_baton* baton = new topdf_init_baton;
@@ -203,15 +217,11 @@ Handle<Value> init (const Arguments& args) {
     
 }
 
-Handle<Value> setGlobalOptions (const Arguments& args) {
+Handle<Value> set (const Arguments& args) {
     
     HandleScope scope;
     
-    // get the provided options object
-    Local<Object> options = Local<Object>::Cast(args[0]);
-    
-    // set the given options with no document handle
-    setOptions(NULL, options);
+    setOptions((VTHDOC)NULL, args[0]->ToObject());
     
     return scope.Close(Undefined());
     
@@ -221,7 +231,7 @@ void initialize (Handle<Object> target) {
     
     target->Set(String::NewSymbol("initialize"), FunctionTemplate::New(init)->GetFunction());
     target->Set(String::NewSymbol("convert"), FunctionTemplate::New(convert)->GetFunction());
-    target->Set(String::NewSymbol("set"), FunctionTemplate::New(setGlobalOptions)->GetFunction());
+    target->Set(String::NewSymbol("setOptions"), FunctionTemplate::New(set)->GetFunction());
     
 }
 
