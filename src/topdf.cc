@@ -12,6 +12,23 @@
 
 using namespace v8;
 
+void setOptions (VTHDOC documentHandle, Local<Object> options) {
+    
+    // BALLMER PEAK ACTIVE
+    VTHDOC handle = documentHandle == NULL ? NULL : documentHandle;
+    
+    if (options->Has(String::New("fontsDirectory"))) {
+        
+        // get the font directory path
+        String::Utf8Value fontsDirectory (options->Get(String::New("fontsDirectory"))->ToString());
+        
+        // set the option
+        DASetOption(handle, SCCOPT_FONTDIRECTORY, *fontsDirectory, fontsDirectory.length() + 1);
+        
+    }
+    
+}
+
 void topdf_init (uv_work_t* req) {
     
     // init the baton pointer
@@ -19,8 +36,10 @@ void topdf_init (uv_work_t* req) {
     
     if (hasInitialized != true) {
         
+        VTDWORD loadOptions = OI_INIT_DEFAULT | OI_INIT_NOSAVEOPTIONS | OI_INIT_NOLOADOPTIONS;
+        
         // initialize data access module, which performs some disk io
-        if (DAInitEx(DATHREAD_INIT_NOTHREADS, OI_INIT_DEFAULT) == DAERR_OK)
+        if (DAInitEx(DATHREAD_INIT_NOTHREADS, loadOptions) == DAERR_OK)
             baton->success = true;
     
     } else {
@@ -79,11 +98,6 @@ void topdf_convert (uv_work_t* req) {
         if (DAOpenDocument(&documentHandle, IOTYPE_UNIXPATH, **(baton->source), 0) == SCCERR_OK) {
             
             VTHEXPORT exportHandle;
-            
-            char fontDirectory[] = "/usr/share/fonts/truetype/msttcorefonts";
-                    
-            // set default export options
-             DASetOption(documentHandle, SCCOPT_FONTDIRECTORY, fontDirectory, 40);
             
             // convert the source document
             if (EXOpenExport(documentHandle, FI_PDF, IOTYPE_UNIXPATH, **(baton->destination), 0, 0, NULL, 0, &exportHandle) == SCCERR_OK) {
@@ -184,10 +198,25 @@ Handle<Value> init (const Arguments& args) {
     
 }
 
+Handle<Value> setGlobalOptions (const Arguments& args) {
+    
+    HandleScope scope;
+    
+    // get the provided options object
+    Local<Object> options = Local<Object>::Cast(args[0]);
+    
+    // set the given options with no document handle
+    setOptions(NULL, options);
+    
+    return scope.Close(Undefined());
+    
+}
+
 void initialize (Handle<Object> target) {
     
     target->Set(String::NewSymbol("initialize"), FunctionTemplate::New(init)->GetFunction());
     target->Set(String::NewSymbol("convert"), FunctionTemplate::New(convert)->GetFunction());
+    target->Set(String::NewSymbol("set"), FunctionTemplate::New(setGlobalOptions)->GetFunction());
     
 }
 
