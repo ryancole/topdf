@@ -5,10 +5,18 @@ A node.js addon for Oracle's pdf export library.
 ```javascript
 var topdf = require('topdf');
 
-topdf.convert('/home/foo/bar.xlsx', '/home/foo/bar.pdf', function (err, details) {
-
-    console.log(details);
-
+topdf.convert('./test/etc/foo.xlsx', './test/etc/foo.pdf', function (err, success) {
+    
+    if (err || !success) {
+        
+        console.log(err);
+        
+    } else {
+        
+        console.log(success);
+        
+    }
+    
 });
 ```
 
