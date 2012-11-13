@@ -7,19 +7,22 @@ using namespace v8;
 
 struct topdf_convert_baton {
     
-    bool success;
     uv_work_t req;
-    String::Utf8Value* source;
-    String::Utf8Value* destination;
-    Persistent<Object> options;
+    
+    bool success;
+    bool hasInitialized;
+    char* source;
+    char* destination;
     Persistent<Function> callback;
     
 };
 
 struct topdf_init_baton {
     
-    bool success;
     uv_work_t req;
+    
+    bool success;
+    bool hasInitialized;
     Persistent<Function> callback;
     
 };

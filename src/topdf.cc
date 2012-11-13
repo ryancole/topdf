@@ -31,7 +31,7 @@ void topdf_init (uv_work_t* req) {
     // init the baton pointer
     topdf_init_baton* baton = (topdf_init_baton*) req->data;
     
-    if (hasInitialized != true) {
+    if (baton->hasInitialized != true) {
         
         VTDWORD loadOptions = OI_INIT_DEFAULT | OI_INIT_NOSAVEOPTIONS | OI_INIT_NOLOADOPTIONS;
         
@@ -85,17 +85,19 @@ void topdf_convert (uv_work_t* req) {
     topdf_convert_baton* baton = (topdf_convert_baton*) req->data;
     
     // only continue if initialized
-    if (hasInitialized == true) {
+    if (baton->hasInitialized == true) {
         
         VTHDOC documentHandle;
         
         // open the source document
-        if (DAOpenDocument(&documentHandle, IOTYPE_UNIXPATH, **(baton->source), 0) == SCCERR_OK) {
+        if (DAOpenDocument(&documentHandle, IOTYPE_UNIXPATH, baton->source, 0) == SCCERR_OK) {
             
             VTHEXPORT exportHandle;
             
             // convert the source document
-            if (EXOpenExport(documentHandle, FI_PDF, IOTYPE_UNIXPATH, **(baton->destination), 0, 0, NULL, 0, &exportHandle) == SCCERR_OK) {
+            if (EXOpenExport(documentHandle, FI_PDF, IOTYPE_UNIXPATH, baton->destination, 0, 0, NULL, 0, &exportHandle) == SCCERR_OK) {
+                
+                ThrowException(Exception::TypeError(String::New("expected str, str, func parameters")));
                 
                 if (EXRunExport(exportHandle) == SCCERR_OK) {
                     
@@ -127,20 +129,13 @@ void topdf_convert_end (uv_work_t* req) {
     
     if (baton->success == true) {
         
-        // create details result object
-        Local<Object> details = Object::New();
-        
-        // set detail properties
-        details->Set(String::NewSymbol("path"), String::New("/foo/bar/baz"));
-        
-        // set callback parameters
         argv[0] = Local<Value>::New(Null());
-        argv[1] = Local<Value>::New(details);
+        argv[1] = Local<Value>::New(Boolean::New(true));
         
     } else {
         
-        argv[0] = Exception::Error(String::New("failed to convert file"));
-        argv[1] = Local<Value>::New(Null());
+        argv[0] = Exception::Error(String::New(baton->source));
+        argv[1] = Local<Value>::New(Boolean::New(false));
         
     }
     
@@ -155,22 +150,34 @@ Handle<Value> convert (const Arguments& args) {
     
     HandleScope scope;
     
-    if (args.Length() != 4)
+    if (args.Length() != 3)
         ThrowException(Exception::SyntaxError(String::New("expected four parameters")));
     
-    if (!args[0]->IsString() || !args[1]->IsString() || !args[2]->IsObject() || !args[3]->IsFunction())
-        ThrowException(Exception::TypeError(String::New("expected str, str, obj, func parameters")));
+    if (!args[0]->IsString() || !args[1]->IsString() || !args[2]->IsFunction())
+        ThrowException(Exception::TypeError(String::New("expected str, str, func parameters")));
+    
+    String::Utf8Value source (args[0]->ToString());
+    String::Utf8Value destination (args[1]->ToString());
     
     // instanciate data baton
     topdf_convert_baton* baton = new topdf_convert_baton;
     
-    // initialize baton properties
-    baton->success = false;
+    // set async work data thing
     baton->req.data = (void*) baton;
-    baton->source = new String::Utf8Value(args[0]->ToString());
-    baton->destination = new String::Utf8Value(args[1]->ToString());
-    baton->options = Persistent<Object>::New(args[2]->ToObject());
-    baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[3]));
+    
+    // init string memory locations
+    baton->source = new char[source.length() + 1];
+    baton->destination = new char[destination.length() + 1];
+    
+    // set baton properties
+    baton->success = false;;
+    baton->destination = *destination;
+    baton->hasInitialized = hasInitialized;
+    baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[2]));
+    
+    // copy in string paths
+    strncpy((char*)memset(baton->source, '\0', source.length() + 1), *source, source.length());
+    strncpy((char*)memset(baton->destination, '\0', destination.length() + 1), *destination, destination.length());
     
     // initiate async work on thread pool
     uv_queue_work(uv_default_loop(), &baton->req, topdf_convert, topdf_convert_end);
@@ -192,9 +199,12 @@ Handle<Value> init (const Arguments& args) {
     // instanciate data baton
     topdf_init_baton* baton = new topdf_init_baton;
     
+    // set async work data thing
+    baton->req.data = (void*)baton;
+    
     // initialize baton properties
     baton->success = false;
-    baton->req.data = (void*)baton;
+    baton->hasInitialized = hasInitialized;
     baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[0]));
     
     // queue work on thread pool
