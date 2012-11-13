@@ -97,8 +97,6 @@ void topdf_convert (uv_work_t* req) {
             // convert the source document
             if (EXOpenExport(documentHandle, FI_PDF, IOTYPE_UNIXPATH, baton->destination, 0, 0, NULL, 0, &exportHandle) == SCCERR_OK) {
                 
-                ThrowException(Exception::TypeError(String::New("expected str, str, func parameters")));
-                
                 if (EXRunExport(exportHandle) == SCCERR_OK) {
                     
                     baton->success = true;
@@ -134,7 +132,7 @@ void topdf_convert_end (uv_work_t* req) {
         
     } else {
         
-        argv[0] = Exception::Error(String::New(baton->source));
+        argv[0] = Exception::Error(String::New("failed to convert file"));
         argv[1] = Local<Value>::New(Boolean::New(false));
         
     }
@@ -171,7 +169,6 @@ Handle<Value> convert (const Arguments& args) {
     
     // set baton properties
     baton->success = false;;
-    baton->destination = *destination;
     baton->hasInitialized = hasInitialized;
     baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[2]));
     
