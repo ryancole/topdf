@@ -10,7 +10,6 @@ struct topdf_convert_baton {
     uv_work_t req;
     
     bool success;
-    bool hasInitialized;
     char* source;
     char* destination;
     Persistent<Function> callback;
@@ -22,7 +21,6 @@ struct topdf_init_baton {
     uv_work_t req;
     
     bool success;
-    bool hasInitialized;
     Persistent<Function> callback;
     
 };
