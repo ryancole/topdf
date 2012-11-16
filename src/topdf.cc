@@ -26,80 +26,48 @@ void setOptions (VTHDOC documentHandle, Handle<Object> options) {
     
 }
 
-void topdf_init (uv_work_t* req) {
-    
-    // init the baton pointer
-    topdf_init_baton* baton = (topdf_init_baton*) req->data;
-    
-    VTDWORD loadOptions = OI_INIT_DEFAULT | OI_INIT_NOSAVEOPTIONS | OI_INIT_NOLOADOPTIONS;
-    
-    // initialize data access module, which performs some disk io
-    if (DAInitEx(DATHREAD_INIT_NOTHREADS, loadOptions) == DAERR_OK)
-        baton->success = true;
-    
-}
-
-void topdf_init_end (uv_work_t* req) {
-    
-    HandleScope scope;
-    
-    // init the baton pointer
-    topdf_init_baton* baton = (topdf_init_baton*) req->data;
-    
-    // set global variable making note of a successful load
-    if (baton->success == true)
-        hasInitialized = true;
-    
-    // init callback params
-    Local<Value> argv[2];
-    
-    if (baton->success == true) {
-        
-        argv[0] = Local<Value>::New(Null());
-        argv[1] = Local<Value>::New(Boolean::New(true));
-        
-    } else {
-        
-        argv[0] = Exception::Error(String::New("failed to initialize export engine"));
-        argv[1] = Local<Value>::New(Boolean::New(false));
-        
-    }
-    
-    // execute callback function
-    node::MakeCallback(Context::GetCurrent()->Global(), baton->callback, 2, argv);
-    
-    delete baton;
-    
-}
-
 void topdf_convert (uv_work_t* req) {
     
     // init the baton pointer
     topdf_convert_baton* baton = (topdf_convert_baton*) req->data;
     
-    VTHDOC documentHandle;
-    
-    // open the source document
-    if (DAOpenDocument(&documentHandle, IOTYPE_UNIXPATH, baton->source, 0) == SCCERR_OK) {
+    VTDWORD loadOptions = OI_INIT_DEFAULT | OI_INIT_NOSAVEOPTIONS | OI_INIT_NOLOADOPTIONS;
         
-        VTHEXPORT exportHandle;
+    // initialize data access module, which performs some disk io
+    if (DAInitEx(DATHREAD_INIT_NOTHREADS, loadOptions) == DAERR_OK) {
         
-        // convert the source document
-        if (EXOpenExport(documentHandle, FI_PDF, IOTYPE_UNIXPATH, baton->destination, 0, 0, NULL, 0, &exportHandle) == SCCERR_OK) {
+        VTHDOC documentHandle;
+        
+        // open the source document
+        if (DAOpenDocument(&documentHandle, IOTYPE_UNIXPATH, baton->source, 0) == SCCERR_OK) {
             
-            if (EXRunExport(exportHandle) == SCCERR_OK) {
+            VTHEXPORT exportHandle;
+            
+            char foo[] = "/usr/share/fonts/truetype/msttcorefonts";
+            
+            // set some options
+            DASetOption(documentHandle, SCCOPT_FONTDIRECTORY, foo, 39);
+            
+            // convert the source document
+            if (EXOpenExport(documentHandle, FI_PDF, IOTYPE_UNIXPATH, baton->destination, 0, 0, NULL, 0, &exportHandle) == SCCERR_OK) {
                 
-                baton->success = true;
+                if (EXRunExport(exportHandle) == SCCERR_OK) {
+                    
+                    baton->success = true;
+                    
+                }
+                
+                // close the export engine
+                EXCloseExport(exportHandle);
                 
             }
             
-            // close the export engine
-            EXCloseExport(exportHandle);
+            // close the opened document
+            DACloseDocument(documentHandle);
             
         }
         
-        // close the opened document
-        DACloseDocument(documentHandle);
+        DADeInit();
         
     }
     
@@ -144,86 +112,29 @@ Handle<Value> convert (const Arguments& args) {
     if (!args[0]->IsString() || !args[1]->IsString() || !args[2]->IsFunction())
         ThrowException(Exception::TypeError(String::New("expected str, str, func parameters")));
     
-    if (hasInitialized == true) {
-        
-        String::Utf8Value source (args[0]->ToString());
-        String::Utf8Value destination (args[1]->ToString());
-        
-        // instanciate data baton
-        topdf_convert_baton* baton = new topdf_convert_baton;
-        
-        // set async work data thing
-        baton->req.data = (void*) baton;
-        
-        // init string memory locations
-        baton->source = new char[source.length() + 1];
-        baton->destination = new char[destination.length() + 1];
-        
-        // set baton properties
-        baton->success = false;;
-        baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[2]));
-        
-        // copy in string paths
-        strncpy((char*)memset(baton->source, '\0', source.length() + 1), *source, source.length());
-        strncpy((char*)memset(baton->destination, '\0', destination.length() + 1), *destination, destination.length());
-        
-        // initiate async work on thread pool
-        uv_queue_work(uv_default_loop(), &baton->req, topdf_convert, topdf_convert_end);
-        
-    } else {
-        
-        Local<Value> argv[2] = {
-                
-            Exception::Error(String::New("the conversion engine has not been initialized")),
-            Local<Value>::New(Boolean::New(false))
-            
-        };
-        
-        node::MakeCallback(Context::GetCurrent()->Global(), Local<Function>::Cast(args[2]), 2, argv);
-        
-    }
+    String::Utf8Value source (args[0]->ToString());
+    String::Utf8Value destination (args[1]->ToString());
     
-    return scope.Close(Undefined());
+    // instanciate data baton
+    topdf_convert_baton* baton = new topdf_convert_baton;
     
-}
-
-Handle<Value> init (const Arguments& args) {
+    // set async work data thing
+    baton->req.data = (void*) baton;
     
-    HandleScope scope;
+    // init string memory locations
+    baton->source = new char[source.length() + 1];
+    baton->destination = new char[destination.length() + 1];
     
-    if (args.Length() != 1)
-        ThrowException(Exception::SyntaxError(String::New("expected one parameter")));
+    // set baton properties
+    baton->success = false;;
+    baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[2]));
     
-    if (!args[0]->IsFunction())
-        ThrowException(Exception::TypeError(String::New("expected callback parameter")));
+    // copy in string paths
+    strncpy((char*)memset(baton->source, '\0', source.length() + 1), *source, source.length());
+    strncpy((char*)memset(baton->destination, '\0', destination.length() + 1), *destination, destination.length());
     
-    if (hasInitialized == true) {
-        
-        Local<Value> argv[2] = {
-                
-            Local<Value>::New(Null()),
-            Local<Value>::New(Boolean::New(true))
-            
-        };
-        
-        node::MakeCallback(Context::GetCurrent()->Global(), Local<Function>::Cast(args[0]), 2, argv);
-        
-    } else {
-        
-        // instanciate data baton
-        topdf_init_baton* baton = new topdf_init_baton;
-        
-        // set async work data thing
-        baton->req.data = (void*)baton;
-        
-        // initialize baton properties
-        baton->success = false;
-        baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[0]));
-        
-        // queue work on thread pool
-        uv_queue_work(uv_default_loop(), &baton->req, topdf_init, topdf_init_end);
-        
-    }
+    // initiate async work on thread pool
+    uv_queue_work(uv_default_loop(), &baton->req, topdf_convert, topdf_convert_end);
     
     return scope.Close(Undefined());
     
@@ -241,7 +152,6 @@ Handle<Value> set (const Arguments& args) {
 
 void initialize (Handle<Object> target) {
     
-    target->Set(String::NewSymbol("initialize"), FunctionTemplate::New(init)->GetFunction());
     target->Set(String::NewSymbol("convert"), FunctionTemplate::New(convert)->GetFunction());
     target->Set(String::NewSymbol("setOptions"), FunctionTemplate::New(set)->GetFunction());
     
