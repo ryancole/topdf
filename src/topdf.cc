@@ -12,20 +12,6 @@
 
 using namespace v8;
 
-void setOptions (VTHDOC documentHandle, Handle<Object> options) {
-    
-    if (options->Has(String::New("fontDirectory"))) {
-        
-        // get the option value
-        String::Utf8Value value (options->Get(String::New("fontDirectory"))->ToString());
-        
-        // set the option
-        DASetOption(documentHandle, SCCOPT_FONTDIRECTORY, *value, value.length());
-        
-    }
-    
-}
-
 void topdf_convert (uv_work_t* req) {
     
     // init the baton pointer
