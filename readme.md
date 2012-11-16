@@ -20,6 +20,10 @@ topdf.convert('./test/etc/foo.xlsx', './test/etc/foo.pdf', function (err, succes
 });
 ```
 
+# Runtime Prerequisites
+
+Make sure `/usr/local/lib/pdfexport` is in `$LD_LIBRARY_PATH`. Also, I currently have the font directory hard-coded to `/usr/share/fonts/truetype/msttcorefonts`. I plan to make this configurable, soon.
+
 # Compiling Prerequisites
 
 Download the Oracle pdf export SDK, place the header files in `/usr/local/include/pdfexport` and the *entire* contents of the sdk's `redist` directory into `/usr/local/lib/pdfexport`. Make sure `/usr/local/lib/pdfexport` is in `$LD_LIBRARY_PATH`.
