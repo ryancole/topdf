@@ -41,6 +41,8 @@ void topdf_init (uv_work_t* req) {
 
 void topdf_init_end (uv_work_t* req) {
     
+    HandleScope scope;
+    
     // init the baton pointer
     topdf_init_baton* baton = (topdf_init_baton*) req->data;
     
@@ -104,6 +106,8 @@ void topdf_convert (uv_work_t* req) {
 }
 
 void topdf_convert_end (uv_work_t* req) {
+    
+    HandleScope scope;
     
     // init the baton pointer
     topdf_convert_baton* baton = (topdf_convert_baton*) req->data;
