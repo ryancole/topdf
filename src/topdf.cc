@@ -34,7 +34,7 @@ void topdf_convert (uv_work_t* req) {
     VTDWORD loadOptions = OI_INIT_DEFAULT | OI_INIT_NOSAVEOPTIONS | OI_INIT_NOLOADOPTIONS;
         
     // initialize data access module, which performs some disk io
-    if (DAInitEx(DATHREAD_INIT_NOTHREADS, loadOptions) == DAERR_OK) {
+    if (DAInitEx(DATHREAD_INIT_PTHREADS, loadOptions) == DAERR_OK) {
         
         VTHDOC documentHandle;
         
@@ -140,20 +140,9 @@ Handle<Value> convert (const Arguments& args) {
     
 }
 
-Handle<Value> set (const Arguments& args) {
-    
-    HandleScope scope;
-    
-    setOptions((VTHDOC)NULL, args[0]->ToObject());
-    
-    return scope.Close(Undefined());
-    
-}
-
 void initialize (Handle<Object> target) {
     
     target->Set(String::NewSymbol("convert"), FunctionTemplate::New(convert)->GetFunction());
-    target->Set(String::NewSymbol("setOptions"), FunctionTemplate::New(set)->GetFunction());
     
 }
 
