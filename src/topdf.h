@@ -5,6 +5,12 @@
 
 using namespace v8;
 
+struct topdf_options {
+    
+    char* fontdirectory;
+    
+};
+
 struct topdf_convert_baton {
     
     uv_work_t req;
@@ -12,6 +18,7 @@ struct topdf_convert_baton {
     bool success;
     char* source;
     char* destination;
+    topdf_options* options;
     Persistent<Function> callback;
     
 };

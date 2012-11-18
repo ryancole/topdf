@@ -12,6 +12,43 @@
 
 using namespace v8;
 
+void initializeOptions (Handle<Object> source, topdf_options* destination) {
+    
+    HandleScope scope;
+    
+    // font directory
+    if (source->Has(String::New("fontdirectory"))) {
+        
+        // get the provided path
+        String::Utf8Value fontdirectory (source->Get(String::New("fontdirectory"))->ToString());
+        
+        // init destination string size
+        destination->fontdirectory = new char[fontdirectory.length() + 1];
+        
+        // copy in provded path
+        strncpy((char*)memset(destination->fontdirectory, '\0', fontdirectory.length() + 1), *fontdirectory, fontdirectory.length());
+        
+    } else {
+        
+        // init default path
+        char fontdirectory[] = "/usr/share/fonts/truetype/msttcorefonts";
+        
+        // init destination string size
+        destination->fontdirectory = new char[strlen(fontdirectory) + 1];
+        
+        // copy in default path
+        strncpy((char*)memset(destination->fontdirectory, '\0', strlen(fontdirectory) + 1), fontdirectory, strlen(fontdirectory));
+        
+    }
+    
+}
+
+void setOptions (VTHDOC documentHandle, topdf_options* options) {
+    
+    DASetOption(documentHandle, SCCOPT_FONTDIRECTORY, options->fontdirectory, strlen(options->fontdirectory));
+    
+}
+
 void topdf_convert (uv_work_t* req) {
     
     // init the baton pointer
@@ -29,10 +66,8 @@ void topdf_convert (uv_work_t* req) {
             
             VTHEXPORT exportHandle;
             
-            char foo[] = "/usr/share/fonts/truetype/msttcorefonts";
-            
-            // set some options
-            DASetOption(documentHandle, SCCOPT_FONTDIRECTORY, foo, 39);
+            // set options for the documents
+            setOptions(documentHandle, baton->options);
             
             // convert the source document
             if (EXOpenExport(documentHandle, FI_PDF, IOTYPE_UNIXPATH, baton->destination, 0, 0, NULL, 0, &exportHandle) == SCCERR_OK) {
@@ -92,11 +127,11 @@ Handle<Value> convert (const Arguments& args) {
     
     HandleScope scope;
     
-    if (args.Length() != 3)
+    if (args.Length() != 4)
         ThrowException(Exception::SyntaxError(String::New("expected four parameters")));
     
-    if (!args[0]->IsString() || !args[1]->IsString() || !args[2]->IsFunction())
-        ThrowException(Exception::TypeError(String::New("expected str, str, func parameters")));
+    if (!args[0]->IsString() || !args[1]->IsString() || !args[2]->IsObject() || !args[3]->IsFunction())
+        ThrowException(Exception::TypeError(String::New("expected str, str, obj, func parameters")));
     
     String::Utf8Value source (args[0]->ToString());
     String::Utf8Value destination (args[1]->ToString());
@@ -113,11 +148,15 @@ Handle<Value> convert (const Arguments& args) {
     
     // set baton properties
     baton->success = false;;
-    baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[2]));
+    baton->options = new topdf_options;
+    baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[3]));
     
     // copy in string paths
     strncpy((char*)memset(baton->source, '\0', source.length() + 1), *source, source.length());
     strncpy((char*)memset(baton->destination, '\0', destination.length() + 1), *destination, destination.length());
+    
+    // set the desired options
+    initializeOptions(args[2]->ToObject(), baton->options);
     
     // initiate async work on thread pool
     uv_queue_work(uv_default_loop(), &baton->req, topdf_convert, topdf_convert_end);
