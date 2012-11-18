@@ -7,6 +7,7 @@ using namespace v8;
 
 struct topdf_options {
     
+    char* watermark;
     char* fontdirectory;
     
 };

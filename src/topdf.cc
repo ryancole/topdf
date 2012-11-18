@@ -41,11 +41,47 @@ void initializeOptions (Handle<Object> source, topdf_options* destination) {
         
     }
     
+    // watermark
+    if (source->Has(String::New("watermark"))) {
+        
+        // get the provided path
+        String::Utf8Value watermark (source->Get(String::New("watermark"))->ToString());
+        
+        // init destination string size
+        destination->watermark = new char[watermark.length() + 1];
+        
+        // copy in provided path
+        strncpy((char*)memset(destination->watermark, '\0', watermark.length() + 1), *watermark, watermark.length());
+        
+    }
+    
 }
 
 void setOptions (VTHDOC documentHandle, topdf_options* options) {
     
+    // set font directory
     DASetOption(documentHandle, SCCOPT_FONTDIRECTORY, options->fontdirectory, strlen(options->fontdirectory));
+    
+    // set watermark settings
+    if (options->watermark != NULL) {
+        
+        WATERMARKIO watermarkSettings;
+        WATERMARKPATH watermarkPathSettings;
+        
+        // set path settings
+        watermarkPathSettings.dwMaxSize = SCCUT_FILENAMEMAX;
+        strncpy((char*)memset(watermarkPathSettings.szWaterMarkPath, '\0', SCCUT_FILENAMEMAX), options->watermark, strlen(options->watermark));
+        
+        // set watermark settings
+        watermarkSettings.dwType = IOTYPE_UNIXPATH;
+        watermarkSettings.Path = watermarkPathSettings;
+        
+        VTBOOL enabled = 1;
+        
+        DASetOption(documentHandle, SCCOPT_ENABLEWATERMARK, &enabled, sizeof(VTBOOL));
+        DASetOption(documentHandle, SCCOPT_WATERMARKIO, &watermarkSettings, sizeof(WATERMARKIO));
+        
+    }
     
 }
 

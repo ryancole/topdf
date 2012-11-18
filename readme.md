@@ -5,7 +5,16 @@ A node.js addon for Oracle's pdf export library.
 ```javascript
 var topdf = require('topdf');
 
-topdf.convert('./test/etc/foo.xlsx', './test/etc/foo.pdf', function (err, success) {
+// the default settings
+var options = {
+    
+    watermark: './test/etc/test.png',
+    fontdirectory: '/usr/share/fonts/truetype/msttcorefonts'
+    
+};
+
+// convert a single document, using custom settings
+topdf.convert('./test/etc/foo.xlsx', './test/etc/foo.pdf', options, function (err, success) {
     
     if (err || !success) {
         
@@ -19,6 +28,16 @@ topdf.convert('./test/etc/foo.xlsx', './test/etc/foo.pdf', function (err, succes
     
 });
 ```
+
+# Options
+
+1. watermark
+    
+    > A path to an image file to be used as the watermark image. This defaults to not watermark image if this propery is omitted.
+
+2. fontdirectory
+    
+    > A path to a directory containing true type fonts to be used. This defaults to `/usr/share/fonts/truetype/msttcorefonts` if this property is omitted. This option is *required*, if the default does not fit your setup.
 
 # Runtime Prerequisites
 

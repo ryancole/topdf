@@ -4,7 +4,8 @@ var topdf = require('../lib/topdf');
 // set some options
 var options = {
     
-   fontdirectory: '/home/ryan'
+    watermark: './test/etc/test.png',
+    fontdirectory: '/usr/share/fonts/truetype/msttcorefonts'
     
 };
 
