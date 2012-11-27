@@ -55,12 +55,61 @@ void initializeOptions (Handle<Object> source, topdf_options* destination) {
         
     }
     
+    // gridlines
+    if (source->Has(String::New("gridlines"))) {
+        
+        // get the provided setting
+        Local<Boolean> gridlines = source->Get(String::New("gridlines"))->ToBoolean();
+        
+        // set the baton value
+        destination->gridlines = gridlines->Value() ? 1 : 0;
+        
+    } else {
+        
+        destination->gridlines = 0;
+        
+    }
+    
+    // headings
+    if (source->Has(String::New("headings"))) {
+        
+        // get the provided setting
+        Local<Boolean> headings = source->Get(String::New("headings"))->ToBoolean();
+        
+        // set the baton value
+        destination->headings = headings->Value() ? 1 : 0;
+        
+    } else {
+        
+        destination->headings = 0;
+        
+    }
+    
+    // use options specified in document
+    if (source->Has(String::New("override"))) {
+        
+        // get the provided setting
+        Local<Boolean> override = source->Get(String::New("override"))->ToBoolean();
+        
+        // set the baton value
+        destination->override = override->Value() ? 0 : 1;
+        
+    } else {
+        
+        // default is to use doc page settings
+        destination->override = 1;
+        
+    }
+    
 }
 
 void setOptions (VTHDOC documentHandle, topdf_options* options) {
     
     // set font directory
     DASetOption(documentHandle, SCCOPT_FONTDIRECTORY, options->fontdirectory, strlen(options->fontdirectory));
+    
+    // set override
+    DASetOption(documentHandle, SCCOPT_USEDOCPAGESETTINGS, &options->override, sizeof(VTBOOL));
     
     // set watermark settings
     if (options->watermark != NULL) {
@@ -82,6 +131,14 @@ void setOptions (VTHDOC documentHandle, topdf_options* options) {
         DASetOption(documentHandle, SCCOPT_WATERMARKIO, &watermarkSettings, sizeof(WATERMARKIO));
         
     }
+    
+    // set gridlines
+    DASetOption(documentHandle, SCCOPT_DBPRINTGRIDLINES, &options->gridlines, sizeof(VTBOOL));
+    DASetOption(documentHandle, SCCOPT_SSPRINTGRIDLINES, &options->gridlines, sizeof(VTBOOL));
+    
+    // set headings settings
+    DASetOption(documentHandle, SCCOPT_DBPRINTHEADINGS, &options->headings, sizeof(VTBOOL));
+    DASetOption(documentHandle, SCCOPT_SSPRINTHEADINGS, &options->headings, sizeof(VTBOOL));
     
 }
 

@@ -5,7 +5,10 @@ var topdf = require('../lib/topdf');
 var options = {
     
     watermark: './test/etc/test.png',
-    fontdirectory: '/usr/share/fonts/truetype/msttcorefonts'
+    fontdirectory: '/usr/share/fonts/truetype/msttcorefonts',
+    override: true,
+    headings: true,
+    gridlines: true
     
 };
 

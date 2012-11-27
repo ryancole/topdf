@@ -7,6 +7,9 @@ using namespace v8;
 
 struct topdf_options {
     
+    int override;
+    int headings;
+    int gridlines;
     char* watermark;
     char* fontdirectory;
     
