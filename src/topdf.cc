@@ -53,6 +53,14 @@ void initializeOptions (Handle<Object> source, topdf_options* destination) {
         // copy in provided path
         strncpy((char*)memset(destination->watermark, '\0', watermark.length() + 1), *watermark, watermark.length());
         
+    } else {
+        
+        // init destination buffer
+        destination->watermark = new char[1];
+        
+        // null out buffer
+        memset(destination->watermark, '\0', 1);
+        
     }
     
     // gridlines
@@ -116,7 +124,7 @@ void setOptions (VTHDOC documentHandle, topdf_options* options) {
     DASetOption(documentHandle, SCCOPT_USEDOCPAGESETTINGS, &options->override, sizeof(VTBOOL));
     
     // set watermark settings
-    if (options->watermark != NULL) {
+    if (strlen(options->watermark) > 0) {
         
         printf("setting watermark\n");
         
