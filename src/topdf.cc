@@ -113,20 +113,14 @@ void initializeOptions (Handle<Object> source, topdf_options* destination) {
 
 void setOptions (VTHDOC documentHandle, topdf_options* options) {
     
-    printf("setting fontdir\n");
-    
     // set font directory
     DASetOption(documentHandle, SCCOPT_FONTDIRECTORY, options->fontdirectory, strlen(options->fontdirectory));
-    
-    printf("setting override\n");
     
     // set override
     DASetOption(documentHandle, SCCOPT_USEDOCPAGESETTINGS, &options->override, sizeof(VTBOOL));
     
     // set watermark settings
     if (strlen(options->watermark) > 0) {
-        
-        printf("setting watermark\n");
         
         WATERMARKIO watermarkSettings;
         WATERMARKPATH watermarkPathSettings;
@@ -146,13 +140,9 @@ void setOptions (VTHDOC documentHandle, topdf_options* options) {
         
     }
     
-    printf("setting gridlines\n");
-    
     // set gridlines
     DASetOption(documentHandle, SCCOPT_DBPRINTGRIDLINES, &options->gridlines, sizeof(VTBOOL));
     DASetOption(documentHandle, SCCOPT_SSPRINTGRIDLINES, &options->gridlines, sizeof(VTBOOL));
-    
-    printf("setting headings\n");
     
     // set headings settings
     DASetOption(documentHandle, SCCOPT_DBPRINTHEADINGS, &options->headings, sizeof(VTBOOL));
