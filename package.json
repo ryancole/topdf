@@ -1,6 +1,6 @@
 {
     "name": "topdf",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "A node.js addon for Oracle's pdf export library.",
     "main": "lib/topdf.js",
     "directories": {

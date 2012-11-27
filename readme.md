@@ -9,7 +9,10 @@ var topdf = require('topdf');
 var options = {
     
     watermark: './test/etc/test.png',
-    fontdirectory: '/usr/share/fonts/truetype/msttcorefonts'
+    fontdirectory: '/usr/share/fonts/truetype/msttcorefonts',
+    override: false,
+    gridlines: false,
+    headings: false,
     
 };
 
@@ -38,6 +41,18 @@ topdf.convert('./test/etc/foo.xlsx', './test/etc/foo.pdf', options, function (er
 2. fontdirectory
     
     > A path to a directory containing true type fonts to be used. This defaults to `/usr/share/fonts/truetype/msttcorefonts` if this property is omitted. This option is *required*, if the default does not fit your setup.
+
+3. override
+    
+    > A `boolean` specifying whether or not you wish to override the settings specified in the document. This defaults to `false`, which means any settings stored in the document to be converted will be used. This must be `true` in order to use any other formatting options.
+
+4. gridlines
+    
+    > A `boolean` specifying whether or not to print gridlines in spreadsheet documents. This `defaults` to `false`.
+
+5. headings
+    
+    > A `boolean` specifying whether or not to print headings in spreadsheet documents. This `defaults` to `false`.
 
 # Runtime Prerequisites
 

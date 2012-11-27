@@ -6,9 +6,9 @@ var options = {
     
     watermark: './test/etc/test.png',
     fontdirectory: '/usr/share/fonts/truetype/msttcorefonts',
-    override: true,
-    headings: true,
-    gridlines: true
+    override: false,
+    gridlines: false,
+    headings: false,
     
 };
 
