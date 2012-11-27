@@ -26,7 +26,7 @@ void initializeOptions (Handle<Object> source, topdf_options* destination) {
         destination->fontdirectory = new char[fontdirectory.length() + 1];
         
         // copy in provded path
-        strncpy((char*)memset(destination->fontdirectory, '\0', fontdirectory.length() + 1), *fontdirectory, fontdirectory.length());
+        strncpy((char*)memset(destination->fontdirectory, '\0', sizeof(char) * (fontdirectory.length() + 1)), *fontdirectory, fontdirectory.length());
         
     } else {
         
@@ -37,7 +37,7 @@ void initializeOptions (Handle<Object> source, topdf_options* destination) {
         destination->fontdirectory = new char[strlen(fontdirectory) + 1];
         
         // copy in default path
-        strncpy((char*)memset(destination->fontdirectory, '\0', strlen(fontdirectory) + 1), fontdirectory, strlen(fontdirectory));
+        strncpy((char*)memset(destination->fontdirectory, '\0', sizeof(char) * (strlen(fontdirectory) + 1)), fontdirectory, strlen(fontdirectory));
         
     }
     
@@ -105,14 +105,20 @@ void initializeOptions (Handle<Object> source, topdf_options* destination) {
 
 void setOptions (VTHDOC documentHandle, topdf_options* options) {
     
+    printf("setting fontdir\n");
+    
     // set font directory
     DASetOption(documentHandle, SCCOPT_FONTDIRECTORY, options->fontdirectory, strlen(options->fontdirectory));
+    
+    printf("setting override\n");
     
     // set override
     DASetOption(documentHandle, SCCOPT_USEDOCPAGESETTINGS, &options->override, sizeof(VTBOOL));
     
     // set watermark settings
     if (options->watermark != NULL) {
+        
+        printf("setting watermark\n");
         
         WATERMARKIO watermarkSettings;
         WATERMARKPATH watermarkPathSettings;
@@ -132,9 +138,13 @@ void setOptions (VTHDOC documentHandle, topdf_options* options) {
         
     }
     
+    printf("setting gridlines\n");
+    
     // set gridlines
     DASetOption(documentHandle, SCCOPT_DBPRINTGRIDLINES, &options->gridlines, sizeof(VTBOOL));
     DASetOption(documentHandle, SCCOPT_SSPRINTGRIDLINES, &options->gridlines, sizeof(VTBOOL));
+    
+    printf("setting headings\n");
     
     // set headings settings
     DASetOption(documentHandle, SCCOPT_DBPRINTHEADINGS, &options->headings, sizeof(VTBOOL));
