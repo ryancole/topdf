@@ -170,33 +170,36 @@ void setOptions (VTHDOC documentHandle, topdf_options* options) {
     DASetOption(documentHandle, SCCOPT_DBPRINTHEADINGS, &options->headings, sizeof(VTBOOL));
     DASetOption(documentHandle, SCCOPT_SSPRINTHEADINGS, &options->headings, sizeof(VTBOOL));
     
-    // set memory settings
+    // default memory usage setting
+    VTDWORD memory = SCCDOCUMENTMEMORYMODE_SMALL;
+    
+    // optional memory usage settings
     if (options->memory == 4) {
         
-        DASetOption(documentHandle, SCCOPT_DOCUMENTMEMORYMODE, (VTLPVOID)SCCDOCUMENTMEMORYMODE_SMALLEST, sizeof(VTDWORD));
+        memory = SCCDOCUMENTMEMORYMODE_SMALLEST;
     
     } else if (options->memory == 64) {
         
-        DASetOption(documentHandle, SCCOPT_DOCUMENTMEMORYMODE, (VTLPVOID)SCCDOCUMENTMEMORYMODE_MEDIUM, sizeof(VTDWORD));
+        memory = SCCDOCUMENTMEMORYMODE_MEDIUM;
     
     } else if (options->memory == 256) {
         
-        DASetOption(documentHandle, SCCOPT_DOCUMENTMEMORYMODE, (VTLPVOID)SCCDOCUMENTMEMORYMODE_LARGE, sizeof(VTDWORD));
+        memory = SCCDOCUMENTMEMORYMODE_LARGE;
         
     } else if (options->memory == 1024) {
         
-        DASetOption(documentHandle, SCCOPT_DOCUMENTMEMORYMODE, (VTLPVOID)SCCDOCUMENTMEMORYMODE_LARGEST, sizeof(VTDWORD));
-        
-    } else {
-        
-        DASetOption(documentHandle, SCCOPT_DOCUMENTMEMORYMODE, (VTLPVOID)SCCDOCUMENTMEMORYMODE_SMALL, sizeof(VTDWORD));
+        memory = SCCDOCUMENTMEMORYMODE_LARGEST;
         
     }
+    
+    // set memory usage setting
+    DASetOption(documentHandle, SCCOPT_DOCUMENTMEMORYMODE, &memory, sizeof(VTDWORD));
     
     // set page count settings
     if (options->pages > 0) {
         
-        VTDWORD start = 1, what = SCCVW_PRINT_PAGERANGE;
+        VTDWORD start = 1;
+        VTDWORD what = SCCVW_PRINT_PAGERANGE;
         
         DASetOption(documentHandle, SCCOPT_WHATTOPRINT, &what, sizeof(VTDWORD));
         DASetOption(documentHandle, SCCOPT_PRINTSTARTPAGE, &start, sizeof(VTDWORD));
