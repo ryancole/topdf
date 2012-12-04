@@ -1,62 +1,34 @@
 A node.js addon for Oracle's pdf export library.
 
-# Usage
+## Example
 
 ```javascript
 var topdf = require('topdf');
 
-// the default settings
-var options = {
-    
-    watermark: './test/etc/test.png',
-    fontdirectory: '/usr/share/fonts/truetype/msttcorefonts',
-    override: false,
-    gridlines: false,
-    headings: false,
-    
-};
-
-// convert a single document, using custom settings
 topdf.convert('./test/etc/foo.xlsx', './test/etc/foo.pdf', options, function (err, success) {
     
-    if (err || !success) {
-        
-        console.log(err);
-        
-    } else {
-        
-        console.log(success);
-        
-    }
+    /* ... */
     
 });
 ```
 
-# Options
+## API
 
-1. watermark
-    
-    > A path to an image file to be used as the watermark image. This defaults to not watermark image if this propery is omitted.
+### convert(source, destination, [options,] callback)
 
-2. fontdirectory
-    
-    > A path to a directory containing true type fonts to be used. This defaults to `/usr/share/fonts/truetype/msttcorefonts` if this property is omitted. This option is *required*, if the default does not fit your setup.
+Takes a `source` document and saves it to `destination` as a PDF. The `options` parameter is optional.
 
-3. override
-    
-    > A `boolean` specifying whether or not you wish to override the settings specified in the document. This defaults to `false`, which means any settings stored in the document to be converted will be used. This must be `true` in order to use any other formatting options.
-
-4. gridlines
-    
-    > A `boolean` specifying whether or not to print gridlines in spreadsheet documents. This `defaults` to `false`.
-
-5. headings
-    
-    > A `boolean` specifying whether or not to print headings in spreadsheet documents. This `defaults` to `false`.
+- `watermark`: A path to an image file to be used as the watermark image. This defaults to not watermark image if this propery is omitted.
+- `fontdirectory`: A path to a directory containing true type fonts to be used. This defaults to `/usr/share/fonts/truetype/msttcorefonts` if this property is omitted. This option is *required*, if the default does not fit your setup.
+- `override`: A `boolean` specifying whether or not you wish to override the settings specified in the document. This defaults to `false`, which means any settings stored in the document to be converted will be used. This must be `true` in order to use any other formatting options.
+- `gridlines`: A `boolean` specifying whether or not to print gridlines in spreadsheet documents. This `defaults` to `false`.
+- `headings`: A `boolean` specifying whether or not to print headings in spreadsheet documents. This `defaults` to `false`.
+- `memory`: An `integer` specifying the maximum about of memory, in MB, that the PDF converter may use for caching the `source` file. More memory means less disk reads. Must be a value in the following collection: `4`, `16`, `64`, `256`, `1024`. This defaults to `16`.
+- `pages`: An `integer` specifying the maximum number of pages to write to the `destination` file. Specifying `0` will save all pages. This `defaults` to `0`.
 
 # Runtime Prerequisites
 
-Make sure `/usr/local/lib/pdfexport` is in `$LD_LIBRARY_PATH`. Also, I currently have the font directory hard-coded to `/usr/share/fonts/truetype/msttcorefonts`. I plan to make this configurable, soon.
+Make sure `/usr/local/lib/pdfexport` is in `$LD_LIBRARY_PATH`.
 
 # Compiling Prerequisites
 

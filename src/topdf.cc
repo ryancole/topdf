@@ -109,6 +109,28 @@ void initializeOptions (Handle<Object> source, topdf_options* destination) {
         
     }
     
+    // memory
+    if (source->Has(String::New("memory"))) {
+        
+        destination->memory = source->Get(String::New("memory"))->Int32Value();
+        
+    } else {
+        
+        destination->memory = 16;
+        
+    }
+    
+    // pages
+    if (source->Has(String::New("pages"))) {
+        
+        destination->pages = source->Get(String::New("pages"))->Int32Value();
+        
+    } else {
+        
+        destination->pages = 0;
+        
+    }
+    
 }
 
 void setOptions (VTHDOC documentHandle, topdf_options* options) {
@@ -147,6 +169,40 @@ void setOptions (VTHDOC documentHandle, topdf_options* options) {
     // set headings settings
     DASetOption(documentHandle, SCCOPT_DBPRINTHEADINGS, &options->headings, sizeof(VTBOOL));
     DASetOption(documentHandle, SCCOPT_SSPRINTHEADINGS, &options->headings, sizeof(VTBOOL));
+    
+    // set memory settings
+    if (options->memory == 4) {
+        
+        DASetOption(documentHandle, SCCOPT_DOCUMENTMEMORYMODE, (VTLPVOID)SCCDOCUMENTMEMORYMODE_SMALLEST, sizeof(VTDWORD));
+    
+    } else if (options->memory == 64) {
+        
+        DASetOption(documentHandle, SCCOPT_DOCUMENTMEMORYMODE, (VTLPVOID)SCCDOCUMENTMEMORYMODE_MEDIUM, sizeof(VTDWORD));
+    
+    } else if (options->memory == 256) {
+        
+        DASetOption(documentHandle, SCCOPT_DOCUMENTMEMORYMODE, (VTLPVOID)SCCDOCUMENTMEMORYMODE_LARGE, sizeof(VTDWORD));
+        
+    } else if (options->memory == 1024) {
+        
+        DASetOption(documentHandle, SCCOPT_DOCUMENTMEMORYMODE, (VTLPVOID)SCCDOCUMENTMEMORYMODE_LARGEST, sizeof(VTDWORD));
+        
+    } else {
+        
+        DASetOption(documentHandle, SCCOPT_DOCUMENTMEMORYMODE, (VTLPVOID)SCCDOCUMENTMEMORYMODE_SMALL, sizeof(VTDWORD));
+        
+    }
+    
+    // set page count settings
+    if (options->pages > 0) {
+        
+        VTDWORD start = 1, what = SCCVW_PRINT_PAGERANGE;
+        
+        DASetOption(documentHandle, SCCOPT_WHATTOPRINT, &what, sizeof(VTDWORD));
+        DASetOption(documentHandle, SCCOPT_PRINTSTARTPAGE, &start, sizeof(VTDWORD));
+        DASetOption(documentHandle, SCCOPT_PRINTENDPAGE, &options->pages, sizeof(VTDWORD));
+        
+    }
     
 }
 

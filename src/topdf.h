@@ -7,6 +7,8 @@ using namespace v8;
 
 struct topdf_options {
     
+    int pages;
+    int memory;
     int override;
     int headings;
     int gridlines;
