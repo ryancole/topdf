@@ -319,7 +319,7 @@ Handle<Value> convert (const Arguments& args) {
     initializeOptions(args[2]->ToObject(), baton->options);
     
     // initiate async work on thread pool
-    uv_queue_work(uv_default_loop(), &baton->req, topdf_convert, topdf_convert_end);
+    uv_queue_work(uv_default_loop(), &baton->req, topdf_convert, (uv_after_work_cb)topdf_convert_end);
     
     return scope.Close(Undefined());
     
