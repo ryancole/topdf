@@ -16,8 +16,14 @@ var options = {
 // convert a single document, using default settings
 topdf.convert('./test/etc/foo.xlsx', './test/etc/foo.pdf', options, function (err, success) {
     
-    // no errors
-    assert.ifError(err);
+    if (err) {
+        
+        console.log(err);
+        
+        // no errors
+        assert.ifError(err);
+        
+    }
     
     // successful
     assert.ok(success);

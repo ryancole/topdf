@@ -215,28 +215,43 @@ void topdf_convert (uv_work_t* req) {
     topdf_convert_baton* baton = (topdf_convert_baton*) req->data;
     
     VTDWORD loadOptions = OI_INIT_DEFAULT | OI_INIT_NOSAVEOPTIONS | OI_INIT_NOLOADOPTIONS;
-        
+
     // initialize data access module, which performs some disk io
-    if (DAInitEx(DATHREAD_INIT_PTHREADS, loadOptions) == DAERR_OK) {
+    baton->error = DAInitEx(DATHREAD_INIT_PTHREADS, loadOptions);
+
+    if (baton->error == DAERR_OK) {
         
         VTHDOC documentHandle;
         
+        // make note of the current convert step
+        baton->step = 1;
+
         // open the source document
-        if (DAOpenDocument(&documentHandle, IOTYPE_UNIXPATH, baton->source, 0) == SCCERR_OK) {
+        baton->error = DAOpenDocument(&documentHandle, IOTYPE_UNIXPATH, baton->source, 0);
+
+        if (baton->error == SCCERR_OK) {
             
             VTHEXPORT exportHandle;
             
             // set options for the documents
             setOptions(documentHandle, baton->options);
             
+            // make note of the current convert step
+            baton->step = 2;
+
             // convert the source document
-            if (EXOpenExport(documentHandle, FI_PDF, IOTYPE_UNIXPATH, baton->destination, 0, 0, NULL, 0, &exportHandle) == SCCERR_OK) {
-                
-                if (EXRunExport(exportHandle) == SCCERR_OK) {
-                    
+            baton->error = EXOpenExport(documentHandle, FI_PDF, IOTYPE_UNIXPATH, baton->destination, 0, 0, NULL, 0, &exportHandle);
+
+            if (baton->error == SCCERR_OK) {
+
+            	// make note of the current convert step
+            	baton->step = 3;
+
+            	// export the converted file to disk
+            	baton->error = EXRunExport(exportHandle);
+
+                if (baton->error == SCCERR_OK)
                     baton->success = true;
-                    
-                }
                 
                 // close the export engine
                 EXCloseExport(exportHandle);
@@ -271,7 +286,12 @@ void topdf_convert_end (uv_work_t* req) {
         
     } else {
         
-        argv[0] = Exception::Error(String::New("failed to convert file"));
+    	Local<Object> error = Object::New();
+
+    	error->Set(String::NewSymbol("step"), Number::New(baton->step));
+    	error->Set(String::NewSymbol("error"), Number::New(baton->error));
+
+        argv[0] = Local<Value>::New(error);
         argv[1] = Local<Value>::New(Boolean::New(false));
         
     }
@@ -307,7 +327,9 @@ Handle<Value> convert (const Arguments& args) {
     baton->destination = new char[destination.length() + 1];
     
     // set baton properties
-    baton->success = false;;
+    baton->step = 0;
+    baton->error = 0;
+    baton->success = false;
     baton->options = new topdf_options;
     baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[3]));
     

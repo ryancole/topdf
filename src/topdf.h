@@ -21,6 +21,8 @@ struct topdf_convert_baton {
     
     uv_work_t req;
     
+    int step;
+    int error;
     bool success;
     char* source;
     char* destination;
