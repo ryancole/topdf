@@ -37,3 +37,7 @@ Download the Oracle pdf export SDK, place the header files in `/usr/local/includ
 ## Oracle
 
 You can download Oracle's tools at the following URL: http://www.oracle.com/technetwork/middleware/content-management/downloads/oit-dl-otn-097435.html
+
+## .NET
+
+I also wrote a .NET wrapper around some of the Outside In libaries, available at [ryancole/ManagedOTN](https://github.com/ryancole/ManagedOTN).
