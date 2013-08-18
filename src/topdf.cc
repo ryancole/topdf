@@ -1,5 +1,6 @@
 #include <node.h>
 #include <v8.h>
+#include <string.h>
 
 #ifndef UNIX
     #define UNIX
